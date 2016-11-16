@@ -46,7 +46,7 @@ float LengthPts(int x1, int y1, int x2, int y2)							// sqrt 수학함수
 
 BOOL inCircle(int x, int y, int mx, int my)								// 원 안 밖 클릭 확인
 {
-	if (LengthPts(x, y, mx, my)) return TRUE;
+	if (LengthPts(x, y, mx, my) < 10) return TRUE;
 	else return FALSE;
 }
 
@@ -64,10 +64,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	switch (iMessage)
 	{
 	case WM_CREATE:
-		x = 50;
-		y = 50;
+		Xpos = 50;
+		Ypos = 50;
 		CLICK = DRAW = FALSE;
-		
 		return 0;
 
 	case WM_PAINT:
@@ -80,7 +79,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			myPen = CreatePen(PS_SOLID, 3, RGB(23, 123, 232));	// 새로운 팬 생성
 			oldPen = (HPEN)SelectObject(hdc, myPen);			// 원래있던 팬을 새로운 팬으로 교체
 
-			Ellipse(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE);		// 원 생성 
+			Ellipse(hdc, Xpos - BSIZE, Ypos - BSIZE, Xpos + BSIZE, Ypos + BSIZE);		// 원 생성 
 
 			SelectObject(hdc, oldBrush);		// 다시 원래있던 브러쉬로 설정
 			DeleteObject(myBrush);				// 새로운브러쉬 삭제
@@ -89,19 +88,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		}
 		else
 		{
-			Ellipse(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE);		// 원 생성 
+			Ellipse(hdc, Xpos - BSIZE, Ypos - BSIZE, Xpos + BSIZE, Ypos + BSIZE);		// 원 생성 
 		}
 		return 0;
 
 	case WM_LBUTTONDOWN:
 		mx = LOWORD(lParam);
 		my = HIWORD(lParam);
-		if (inCircle(x, y, mx, my))
+		if (inCircle(Xpos, Ypos, mx, my))
 		{
 			DRAW = TRUE;
 			CLICK = TRUE;
-			Xpos = LOWORD(lParam);
-			Ypos = HIWORD(lParam);
 			endX = Xpos;
 			endY = Ypos;
 		}
@@ -111,9 +108,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 		DRAW = FALSE;
 		if (CLICK)
-			SetTimer(hWnd, 1, 200, NULL);
-		stepX = (endX - x) / 10;
-		stepY = (endY - y) / 10;
+			SetTimer(hWnd, 1, 100, NULL);
+		stepX = (endX - Xpos) / 10;
+		stepY = (endY - Ypos) / 10;
 		CLICK = FALSE;
 
 		hdc = GetDC(hWnd);
@@ -127,13 +124,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_TIMER:
 		count++;
-		x += stepX;
-		y += stepY;
+		Xpos += stepX;
+		Ypos += stepY;
 		InvalidateRect(hWnd, NULL, TRUE);
 		if (count == 10)
 		{
 			stepX = 0;
 			stepY = 0;
+			KillTimer(hWnd, 1);
+			count = 0;
 		}
 		return 0;
 
